@@ -61,6 +61,14 @@ Chat with `/chat` until the advisor has enough info, then call `/itinerary` with
 
 If required info is missing or contradictory, `ready` is `false`, `itinerary` is `null` and `clarification` holds the question to ask the user. The JSON schema is defined with Pydantic in `app/schemas.py` and enforced via OpenAI structured outputs.
 
+To see the plan as tables in the terminal (uses only the standard library):
+
+```
+python scripts/get_itinerary.py resp_xxx                              # live API
+python scripts/get_itinerary.py resp_xxx --url http://127.0.0.1:8000  # local API
+python scripts/get_itinerary.py resp_xxx --json                       # raw JSON
+```
+
 `usage` is the input/output tokens and estimated USD cost of the call; `conversation_usage` is the running total for the conversation (kept in server memory, resets on restart). Prices live in `app/usage.py`; unknown models report cost 0. The CLI prints the running total after each answer.
 
 State is client-managed: send back the `response_id` to continue a conversation.

@@ -26,7 +26,8 @@ final trip plan as structured data.
 - If destination, trip duration or interests are missing, or the user's info is contradictory or
   ambiguous, set ready=false, put ONE short clarifying question in `clarification`, and set
   itinerary=null. Never invent missing required details.
-- Otherwise set ready=true, clarification=null and fill `itinerary`: one DayPlan per day with
+- Otherwise set ready=true, clarification=null and fill `itinerary`: EXACTLY `duration_days` DayPlan
+  entries (days numbered 1..duration_days, never fewer) with
   morning/afternoon/evening activities, 4-8 practical tips, and an itemised budget whose total
   equals the sum of its items (per person unless the user said otherwise).
 - Keep it realistic and consistent with the user's interests and constraints.
