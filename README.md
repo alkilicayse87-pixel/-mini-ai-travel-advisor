@@ -13,6 +13,13 @@ Chatbot that plans personalized trips with the OpenAI API (FastAPI + Pydantic).
 | `docs/` | Security analysis |
 | `frontend/` | Placeholder for the later UI |
 
+## Live demo
+
+- API docs: https://ai-travel-advisor-ot90.onrender.com/docs
+- Health: https://ai-travel-advisor-ot90.onrender.com/health
+
+(Free plan: the first request after idle can take ~1 minute.)
+
 ## Setup
 
 ```
