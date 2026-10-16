@@ -1,0 +1,35 @@
+{
+  "info": {
+    "name": "AI Travel Advisor",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [{ "key": "base_url", "value": "http://127.0.0.1:8000" }],
+  "item": [
+    {
+      "name": "Health",
+      "request": { "method": "GET", "url": "{{base_url}}/health" }
+    },
+    {
+      "name": "Chat - start",
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": ["pm.collectionVariables.set('response_id', pm.response.json().response_id);"] }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{base_url}}/chat",
+        "body": { "mode": "raw", "raw": "{\n  \"message\": \"Plan a three-day food trip to Lisbon\"\n}" }
+      }
+    },
+    {
+      "name": "Chat - continue",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{base_url}}/chat",
+        "body": { "mode": "raw", "raw": "{\n  \"message\": \"I am travelling in May\",\n  \"previous_response_id\": \"{{response_id}}\"\n}" }
+      }
+    }
+  ]
+}
