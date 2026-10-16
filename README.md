@@ -11,7 +11,7 @@ Chatbot that plans personalized trips with the OpenAI API (FastAPI + Pydantic).
 | `postman/` | Postman collection for manual API testing |
 | `deployment/` | Dockerfile + Render blueprint |
 | `docs/` | Security analysis |
-| `frontend/` | Placeholder for the later UI |
+| `frontend/` | Chat UI (static, deployed on Vercel) |
 
 ## Live demo
 

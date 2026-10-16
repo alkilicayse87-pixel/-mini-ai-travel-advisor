@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self' https://ai-travel-advisor-ot90.onrender.com http://127.0.0.1:* http://localhost:*">
+  <title>AI Travel Advisor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>✈️ AI Travel Advisor</h1>
+      <div class="header-actions">
+        <button id="itinerary-btn" disabled title="Chat first, then build a structured plan">Create itinerary</button>
+        <button id="new-btn" class="secondary">New chat</button>
+      </div>
+    </header>
+
+    <section id="messages" class="messages" aria-live="polite"></section>
+    <section id="itinerary" class="itinerary" hidden></section>
+
+    <form id="form" autocomplete="off">
+      <input id="input" type="text" maxlength="2000" placeholder="Tell me about your trip…" required>
+      <button id="send" type="submit">Send</button>
+    </form>
+    <footer id="usage">Tokens: 0 in / 0 out · est. cost $0.0000</footer>
+  </main>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
