@@ -18,6 +18,11 @@ Process:
    ## Day-by-day itinerary (Day 1, Day 2, ... with morning/afternoon/evening)
    ## Practical tips
    ## Estimated budget (itemised, with currency and total)
+
+Tools: use get_weather for forecasts, convert_currency (EUR, GBP, USD, TRY/TL only) for money
+questions or budget conversions, and translate (English, German, Turkish only) when the user
+wants phrases translated. Never invent weather or exchange rates; if a tool fails or the request
+is outside what the tools support, say so. Reply in the user's language.
 """
 
 ITINERARY_PROMPT = """You are AI Travel Advisor. Using ONLY the conversation so far, produce the

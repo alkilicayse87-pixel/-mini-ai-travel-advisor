@@ -40,6 +40,18 @@ API: `uvicorn app.api:app --reload` → http://127.0.0.1:8000/docs
 - `POST /chat` `{"message": "...", "previous_response_id": "resp_..."}` → `{"answer", "response_id", "usage", "conversation_usage"}`
 - `POST /itinerary` `{"previous_response_id": "resp_..."}` → structured JSON itinerary built from the conversation (see below)
 
+### Tools (weather, currency, translator)
+
+`/chat` lets the model call three allow-listed tools (see `app/tools.py`); just ask in the chat:
+
+| Tool | Source | Notes |
+|---|---|---|
+| `get_weather` | Open-Meteo (no key) | Forecast for the next 7 days; far-away trips get typical climate |
+| `convert_currency` | Frankfurter / ECB rates (no key) | Only EUR, GBP, USD and TRY (TL) |
+| `translate` | OpenAI model | Only English, German, Turkish; max 500 characters |
+
+Examples: "What's the weather in Lisbon?", "How much is 100 EUR in TL?", "Translate 'Where is the station?' to German". The tool loop is capped (`MAX_TOOL_ROUNDS`, default 3) and tool token use is included in `usage`. The model can only pick from the allow-list; arguments are validated and only two fixed external hosts are contacted.
+
 ### Structured itinerary
 
 Chat with `/chat` until the advisor has enough info, then call `/itinerary` with the latest `response_id`:
