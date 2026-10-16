@@ -38,6 +38,48 @@ API: `uvicorn app.api:app --reload` → http://127.0.0.1:8000/docs
 
 - `GET /health`
 - `POST /chat` `{"message": "...", "previous_response_id": "resp_..."}` → `{"answer", "response_id", "usage", "conversation_usage"}`
+- `POST /itinerary` `{"previous_response_id": "resp_..."}` → structured JSON itinerary built from the conversation (see below)
+
+### Tools (weather, currency, translator)
+
+`/chat` lets the model call three allow-listed tools (see `app/tools.py`); just ask in the chat:
+
+| Tool | Source | Notes |
+|---|---|---|
+| `get_weather` | Open-Meteo (no key) | Forecast for the next 7 days; far-away trips get typical climate |
+| `convert_currency` | Frankfurter / ECB rates (no key) | Only EUR, GBP, USD and TRY (TL) |
+| `translate` | OpenAI model | Only English, German, Turkish; max 500 characters |
+
+Examples: "What's the weather in Lisbon?", "How much is 100 EUR in TL?", "Translate 'Where is the station?' to German". The tool loop is capped (`MAX_TOOL_ROUNDS`, default 3) and tool token use is included in `usage`. The model can only pick from the allow-list; arguments are validated and only two fixed external hosts are contacted.
+
+### Structured itinerary
+
+Chat with `/chat` until the advisor has enough info, then call `/itinerary` with the latest `response_id`:
+
+```
+{
+  "ready": true,
+  "clarification": null,
+  "itinerary": {
+    "title": "...", "destination": "...", "duration_days": 2, "summary": "...",
+    "days": [{"day": 1, "theme": "...", "activities": [
+      {"time_of_day": "morning", "title": "...", "description": "...", "estimated_cost": 12.0}]}],
+    "tips": ["..."],
+    "budget": {"currency": "EUR", "items": [{"category": "Food", "amount": 80.0}], "total": 212.0}
+  },
+  "response_id": "resp_...", "usage": {...}, "conversation_usage": {...}
+}
+```
+
+If required info is missing or contradictory, `ready` is `false`, `itinerary` is `null` and `clarification` holds the question to ask the user. The JSON schema is defined with Pydantic in `app/schemas.py` and enforced via OpenAI structured outputs.
+
+To see the plan as tables in the terminal (uses only the standard library):
+
+```
+python scripts/get_itinerary.py resp_xxx                              # live API
+python scripts/get_itinerary.py resp_xxx --url http://127.0.0.1:8000  # local API
+python scripts/get_itinerary.py resp_xxx --json                       # raw JSON
+```
 
 `usage` is the input/output tokens and estimated USD cost of the call; `conversation_usage` is the running total for the conversation (kept in server memory, resets on restart). Prices live in `app/usage.py`; unknown models report cost 0. The CLI prints the running total after each answer.
 
