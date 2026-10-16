@@ -12,6 +12,16 @@ class ChatRequest(BaseModel):
     )
 
 
+class Usage(BaseModel):
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cost_usd: float = 0.0
+
+
 class ChatResponse(BaseModel):
     answer: str
     response_id: str
+    usage: Usage = Field(description="Tokens and estimated cost of this call.")
+    conversation_usage: Usage = Field(
+        description="Running total for this conversation (since the last server restart)."
+    )

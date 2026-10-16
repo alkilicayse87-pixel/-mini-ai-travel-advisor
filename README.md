@@ -37,7 +37,9 @@ CLI: `python -m app.main`
 API: `uvicorn app.api:app --reload` → http://127.0.0.1:8000/docs
 
 - `GET /health`
-- `POST /chat` `{"message": "...", "previous_response_id": "resp_..."}` → `{"answer", "response_id"}`
+- `POST /chat` `{"message": "...", "previous_response_id": "resp_..."}` → `{"answer", "response_id", "usage", "conversation_usage"}`
+
+`usage` is the input/output tokens and estimated USD cost of the call; `conversation_usage` is the running total for the conversation (kept in server memory, resets on restart). Prices live in `app/usage.py`; unknown models report cost 0. The CLI prints the running total after each answer.
 
 State is client-managed: send back the `response_id` to continue a conversation.
 

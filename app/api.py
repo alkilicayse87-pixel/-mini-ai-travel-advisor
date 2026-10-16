@@ -37,7 +37,7 @@ def health() -> dict:
 @app.post("/chat", response_model=ChatResponse, dependencies=[Depends(enforce_rate_limit)])
 def chat(req: ChatRequest) -> ChatResponse:
     try:
-        answer, response_id = advisor.chat(req.message, req.previous_response_id)
+        answer, response_id, call_usage, total_usage = advisor.chat(req.message, req.previous_response_id)
     except openai.NotFoundError:
         raise HTTPException(status_code=400, detail="Unknown previous_response_id.")
     except openai.RateLimitError:
@@ -45,4 +45,6 @@ def chat(req: ChatRequest) -> ChatResponse:
     except Exception:
         logger.exception("chat failed")
         raise HTTPException(status_code=502, detail="Upstream AI service error.")
-    return ChatResponse(answer=answer, response_id=response_id)
+    return ChatResponse(
+        answer=answer, response_id=response_id, usage=call_usage, conversation_usage=total_usage
+    )
