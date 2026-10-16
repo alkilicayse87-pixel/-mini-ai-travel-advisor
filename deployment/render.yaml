@@ -11,5 +11,9 @@ services:
         sync: false # set in the Render dashboard, never in git
       - key: OPENAI_MODEL
         value: gpt-4o-mini
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "10"
+      - key: GLOBAL_LIMIT_PER_HOUR
+        value: "200"
       - key: ALLOWED_ORIGINS
         value: "*"
