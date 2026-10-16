@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import advisor
 from app.config import ALLOWED_ORIGINS
-from app.schemas import ChatRequest, ChatResponse
+from app.schemas import ChatRequest, ChatResponse, ItineraryRequest, ItineraryResponse
 from app.security import enforce_rate_limit
 
 logger = logging.getLogger("travel-advisor")
@@ -47,4 +47,26 @@ def chat(req: ChatRequest) -> ChatResponse:
         raise HTTPException(status_code=502, detail="Upstream AI service error.")
     return ChatResponse(
         answer=answer, response_id=response_id, usage=call_usage, conversation_usage=total_usage
+    )
+
+
+@app.post("/itinerary", response_model=ItineraryResponse, dependencies=[Depends(enforce_rate_limit)])
+def itinerary(req: ItineraryRequest) -> ItineraryResponse:
+    """Structured JSON itinerary built from an existing /chat conversation."""
+    try:
+        result, response_id, call_usage, total_usage = advisor.generate_itinerary(req.previous_response_id)
+    except openai.NotFoundError:
+        raise HTTPException(status_code=400, detail="Unknown previous_response_id.")
+    except openai.RateLimitError:
+        raise HTTPException(status_code=429, detail="Rate limited, try again shortly.")
+    except Exception:
+        logger.exception("itinerary failed")
+        raise HTTPException(status_code=502, detail="Upstream AI service error.")
+    return ItineraryResponse(
+        ready=result.ready,
+        clarification=result.clarification,
+        itinerary=result.itinerary if result.ready else None,
+        response_id=response_id,
+        usage=call_usage,
+        conversation_usage=total_usage,
     )

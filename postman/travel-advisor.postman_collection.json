@@ -30,6 +30,15 @@
         "url": "{{base_url}}/chat",
         "body": { "mode": "raw", "raw": "{\n  \"message\": \"I am travelling in May\",\n  \"previous_response_id\": \"{{response_id}}\"\n}" }
       }
+    },
+    {
+      "name": "Itinerary (structured JSON)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{base_url}}/itinerary",
+        "body": { "mode": "raw", "raw": "{\n  \"previous_response_id\": \"{{response_id}}\"\n}" }
+      }
     }
   ]
 }

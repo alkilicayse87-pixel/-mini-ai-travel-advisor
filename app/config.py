@@ -7,6 +7,7 @@ load_dotenv()
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 MAX_MESSAGE_CHARS = int(os.getenv("MAX_MESSAGE_CHARS", "2000"))
 MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "1500"))
+ITINERARY_MAX_OUTPUT_TOKENS = int(os.getenv("ITINERARY_MAX_OUTPUT_TOKENS", "4000"))
 RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "10"))
 GLOBAL_LIMIT_PER_HOUR = int(os.getenv("GLOBAL_LIMIT_PER_HOUR", "200"))
 ALLOWED_ORIGINS = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "*").split(",")]

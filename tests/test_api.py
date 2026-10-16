@@ -63,3 +63,43 @@ def test_conversation_total_accumulates():
     assert second.input_tokens == 30
     assert second.output_tokens == 10
     assert second.cost_usd == 0.3
+
+
+def _sample_itinerary():
+    from app.schemas import Activity, Budget, BudgetItem, DayPlan, Itinerary, ItineraryResult
+
+    it = Itinerary(
+        title="Lisbon Food & Art", destination="Lisbon", duration_days=1, summary="s",
+        days=[DayPlan(day=1, theme="Food", activities=[
+            Activity(time_of_day="morning", title="Pastel de nata", description="d", estimated_cost=3)])],
+        tips=["Walk a lot"],
+        budget=Budget(currency="EUR", items=[BudgetItem(category="Food", amount=3)], total=3),
+    )
+    return ItineraryResult(ready=True, clarification=None, itinerary=it)
+
+
+def test_itinerary_ready(monkeypatch):
+    call = Usage(input_tokens=1, output_tokens=2, cost_usd=0.0)
+    monkeypatch.setattr(advisor, "generate_itinerary", lambda pid: (_sample_itinerary(), "resp_2", call, call))
+    r = client.post("/itinerary", json={"previous_response_id": "resp_1"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["ready"] is True
+    assert body["itinerary"]["days"][0]["activities"][0]["time_of_day"] == "morning"
+    assert body["itinerary"]["budget"]["total"] == 3
+
+
+def test_itinerary_needs_clarification(monkeypatch):
+    from app.schemas import ItineraryResult
+
+    call = Usage()
+    res = ItineraryResult(ready=False, clarification="How many days?", itinerary=None)
+    monkeypatch.setattr(advisor, "generate_itinerary", lambda pid: (res, "resp_2", call, call))
+    body = client.post("/itinerary", json={"previous_response_id": "resp_1"}).json()
+    assert body["ready"] is False
+    assert body["clarification"] == "How many days?"
+    assert body["itinerary"] is None
+
+
+def test_itinerary_requires_conversation_id():
+    assert client.post("/itinerary", json={}).status_code == 422
