@@ -3,7 +3,7 @@ from typing import Optional, Tuple
 
 from openai import OpenAI
 
-from app.config import OPENAI_MODEL, get_api_key
+from app.config import MAX_OUTPUT_TOKENS, OPENAI_MODEL, get_api_key
 from app.prompts import SYSTEM_PROMPT
 
 
@@ -20,5 +20,6 @@ def chat(message: str, previous_response_id: Optional[str] = None) -> Tuple[str,
         input=message,
         previous_response_id=previous_response_id,
         store=True,
+        max_output_tokens=MAX_OUTPUT_TOKENS,
     )
     return response.output_text, response.id
