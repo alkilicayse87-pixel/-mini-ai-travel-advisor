@@ -26,7 +26,7 @@ def test_origin_locked(monkeypatch):
     monkeypatch.setattr(advisor, "chat", fake_chat)
     monkeypatch.setattr(security, "ALLOWED_ORIGINS", ["https://my.app"])
     assert client.post("/chat", json={"message": "hi"}).status_code == 403
-    bad = client.post("/chat", json={"message": "hi"}, headers={"Origin": "https://evil.com"})
+    bad = client.post("/chat", json={"message": "hi"}, headers={"Origin": "https://other-site.example"})
     assert bad.status_code == 403
     ok = client.post("/chat", json={"message": "hi"}, headers={"Origin": "https://my.app"})
     assert ok.status_code == 200
