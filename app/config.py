@@ -14,6 +14,9 @@ TRANSLATE_MODEL = os.getenv("TRANSLATE_MODEL", OPENAI_MODEL)
 TRANSLATE_MAX_CHARS = int(os.getenv("TRANSLATE_MAX_CHARS", "500"))
 RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "10"))
 GLOBAL_LIMIT_PER_HOUR = int(os.getenv("GLOBAL_LIMIT_PER_HOUR", "200"))
+# Hard spending caps (estimated USD). The app refuses requests once a cap is hit.
+DAILY_BUDGET_USD = float(os.getenv("DAILY_BUDGET_USD", "2.0"))
+MAX_CONVERSATION_USD = float(os.getenv("MAX_CONVERSATION_USD", "0.25"))
 ALLOWED_ORIGINS = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "*").split(",")]
 
 

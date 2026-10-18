@@ -27,4 +27,10 @@ footer { color:var(--muted); font-size:.85rem; text-align:center; }
 .itinerary th, .itinerary td { border:1px solid var(--border); padding:6px 8px; text-align:left; vertical-align:top; }
 .itinerary th { background:var(--bot); }
 .itinerary td.num { text-align:right; white-space:nowrap; }
+.compare { margin-top:1.2em; padding-top:.6em; border-top:1px solid var(--border); display:grid; gap:8px; }
+.compare label { display:grid; gap:2px; font-size:.9rem; color:var(--muted); }
+.compare button { justify-self:start; }
+.compare-links { display:flex; flex-wrap:wrap; gap:8px; }
+.compare-links a { padding:8px 12px; border:1px solid var(--brand); border-radius:8px; color:var(--brand); text-decoration:none; }
+.compare .note { font-size:.8rem; color:var(--muted); margin:0; }
 @media (max-width:600px) { .msg { max-width:95%; } }

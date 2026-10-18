@@ -15,5 +15,9 @@ services:
         value: "10"
       - key: GLOBAL_LIMIT_PER_HOUR
         value: "200"
+      - key: DAILY_BUDGET_USD
+        value: "2.0"
+      - key: MAX_CONVERSATION_USD
+        value: "0.25"
       - key: ALLOWED_ORIGINS
-        value: "*"
+        sync: false # set to your exact frontend URL in the Render dashboard

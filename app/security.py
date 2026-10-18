@@ -1,10 +1,18 @@
 import threading
 import time
 from collections import defaultdict, deque
+from typing import Optional
 
 from fastapi import HTTPException, Request
 
-from app.config import GLOBAL_LIMIT_PER_HOUR, RATE_LIMIT_PER_MINUTE
+from app import usage
+from app.config import (
+    ALLOWED_ORIGINS,
+    DAILY_BUDGET_USD,
+    GLOBAL_LIMIT_PER_HOUR,
+    MAX_CONVERSATION_USD,
+    RATE_LIMIT_PER_MINUTE,
+)
 
 
 class SlidingWindowLimiter:
@@ -33,8 +41,28 @@ class SlidingWindowLimiter:
 limiter = SlidingWindowLimiter()
 
 
+def enforce_origin(request: Request) -> None:
+    """Only the configured frontend may call the API from a browser.
+
+    This blocks other websites and casual abuse; a script can still fake the header, which is why
+    the rate limits and spend caps below exist.
+    """
+    if "*" in ALLOWED_ORIGINS:
+        return
+    if request.headers.get("origin") not in ALLOWED_ORIGINS:
+        raise HTTPException(status_code=403, detail="Origin not allowed.")
+
+
+def enforce_budget(previous_response_id: Optional[str] = None) -> None:
+    if usage.spent_today() >= DAILY_BUDGET_USD:
+        raise HTTPException(status_code=503, detail="Daily capacity reached. Please try again tomorrow.")
+    if usage.conversation_cost(previous_response_id) >= MAX_CONVERSATION_USD:
+        raise HTTPException(status_code=429, detail="This conversation is too long. Please start a new chat.")
+
+
 def enforce_rate_limit(request: Request) -> None:
-    ip = request.client.host if request.client else "unknown"
+    enforce_origin(request)
+    ip =  request.client.host if request.client else "unknown"
     if not limiter.allow(f"ip:{ip}", RATE_LIMIT_PER_MINUTE, 60):
         raise HTTPException(status_code=429, detail="Too many requests. Slow down.",
                             headers={"Retry-After": "60"})

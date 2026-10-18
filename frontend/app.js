@@ -138,6 +138,79 @@ function table(headers, rows, numericCols = []) {
   return t;
 }
 
+const enc = encodeURIComponent;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+// Search links for partner sites (no prices are fetched here; each site shows live prices).
+function providerLinks({ origin, destination, checkin, checkout, guests }) {
+  const links = [];
+  const stay = ISO_DATE.test(checkin) && ISO_DATE.test(checkout);
+  const when = stay ? ` from ${checkin} to ${checkout}` : "";
+  links.push(["Hotels · Booking.com",
+    `https://www.booking.com/searchresults.html?ss=${enc(destination)}&group_adults=${guests}` +
+    (stay ? `&checkin=${checkin}&checkout=${checkout}` : "")]);
+  links.push(["Hotels · Expedia",
+    `https://www.expedia.com/Hotel-Search?destination=${enc(destination)}&adults=${guests}` +
+    (stay ? `&startDate=${checkin}&endDate=${checkout}` : "")]);
+  links.push(["Hotels · Kayak",
+    stay ? `https://www.kayak.com/hotels/${enc(destination)}/${checkin}/${checkout}/${guests}adults`
+         : `https://www.kayak.com/hotels/${enc(destination)}`]);
+  links.push(["Hotels · Google",
+    `https://www.google.com/travel/search?q=${enc(`Hotels in ${destination}${when}`)}`]);
+  if (origin) {
+    links.push(["Flights · Google Flights",
+      `https://www.google.com/travel/flights?q=${enc(`Flights from ${origin} to ${destination}${when}`)}`]);
+    links.push(["Flights · Expedia",
+      `https://www.expedia.com/Flights-Search?trip=roundtrip&leg1=from:${enc(origin)},to:${enc(destination)}` +
+      (stay ? `,departure:${checkin}TANYT&leg2=from:${enc(destination)},to:${enc(origin)},departure:${checkout}TANYT` : "") +
+      `&passengers=adults:${guests}`]);
+  }
+  return links;
+}
+
+function renderCompare(destination) {
+  const box = el("div", undefined, "compare");
+  box.appendChild(el("h3", "Compare flights & hotels"));
+  const field = (label, type, value, attrs = {}) => {
+    const wrap = el("label", `${label} `);
+    const inp = el("input");
+    inp.type = type;
+    inp.value = value;
+    Object.assign(inp, attrs);
+    wrap.appendChild(inp);
+    box.appendChild(wrap);
+    return inp;
+  };
+  const origin = field("From (city or airport)", "text", "", { maxLength: 80 });
+  const dest = field("To", "text", destination, { maxLength: 80 });
+  const checkin = field("Check-in / depart", "date", "");
+  const checkout = field("Check-out / return", "date", "");
+  const guests = field("Travelers", "number", "2", { min: 1, max: 9 });
+  const out = el("div", undefined, "compare-links");
+  const go = el("button", "Show comparison links");
+  go.type = "button";
+  go.addEventListener("click", () => {
+    out.replaceChildren();
+    const n = Math.min(9, Math.max(1, parseInt(guests.value, 10) || 1));
+    const d = dest.value.trim();
+    if (!d) return;
+    providerLinks({
+      origin: origin.value.trim(), destination: d,
+      checkin: checkin.value, checkout: checkout.value, guests: n,
+    }).forEach(([label, href]) => {
+      const a = el("a", label);
+      a.href = href;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      out.appendChild(a);
+    });
+  });
+  box.appendChild(go);
+  box.appendChild(out);
+  box.appendChild(el("p", "Opens each site in a new tab with your trip prefilled; prices are shown by the provider and may differ.", "note"));
+  return box;
+}
+
 function renderItinerary(it) {
   itineraryEl.replaceChildren();
   const cur = it.budget.currency;
@@ -163,6 +236,7 @@ function renderItinerary(it) {
      ["TOTAL", it.budget.total.toFixed(2)]],
     [1],
   ));
+  itineraryEl.appendChild(renderCompare(it.destination));
   itineraryEl.hidden = false;
   itineraryEl.scrollIntoView({ behavior: "smooth" });
 }
