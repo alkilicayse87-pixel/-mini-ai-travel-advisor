@@ -4,10 +4,10 @@ import openai
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import advisor
+from app import advisor, usage
 from app.config import ALLOWED_ORIGINS
 from app.schemas import ChatRequest, ChatResponse, ItineraryRequest, ItineraryResponse
-from app.security import enforce_rate_limit
+from app.security import enforce_budget, enforce_rate_limit
 
 logger = logging.getLogger("travel-advisor")
 
@@ -36,8 +36,10 @@ def health() -> dict:
 
 @app.post("/chat", response_model=ChatResponse, dependencies=[Depends(enforce_rate_limit)])
 def chat(req: ChatRequest) -> ChatResponse:
+    enforce_budget(req.previous_response_id)
     try:
         answer, response_id, call_usage, total_usage = advisor.chat(req.message, req.previous_response_id)
+        usage.record_spend(call_usage.cost_usd)
     except openai.NotFoundError:
         raise HTTPException(status_code=400, detail="Unknown previous_response_id.")
     except openai.RateLimitError:
@@ -53,8 +55,10 @@ def chat(req: ChatRequest) -> ChatResponse:
 @app.post("/itinerary", response_model=ItineraryResponse, dependencies=[Depends(enforce_rate_limit)])
 def itinerary(req: ItineraryRequest) -> ItineraryResponse:
     """Structured JSON itinerary built from an existing /chat conversation."""
+    enforce_budget(req.previous_response_id)
     try:
         result, response_id, call_usage, total_usage = advisor.generate_itinerary(req.previous_response_id)
+        usage.record_spend(call_usage.cost_usd)
     except openai.NotFoundError:
         raise HTTPException(status_code=400, detail="Unknown previous_response_id.")
     except openai.RateLimitError:

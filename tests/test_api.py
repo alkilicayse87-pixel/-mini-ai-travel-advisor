@@ -17,6 +17,39 @@ def fake_chat(message, previous_id=None):
 @pytest.fixture(autouse=True)
 def _reset_limiter():
     limiter.reset()
+    usage.reset_daily()
+
+
+def test_origin_locked(monkeypatch):
+    from app import security
+
+    monkeypatch.setattr(advisor, "chat", fake_chat)
+    monkeypatch.setattr(security, "ALLOWED_ORIGINS", ["https://my.app"])
+    assert client.post("/chat", json={"message": "hi"}).status_code == 403
+    bad = client.post("/chat", json={"message": "hi"}, headers={"Origin": "https://evil.com"})
+    assert bad.status_code == 403
+    ok = client.post("/chat", json={"message": "hi"}, headers={"Origin": "https://my.app"})
+    assert ok.status_code == 200
+
+
+def test_daily_budget_stops_requests(monkeypatch):
+    from app import security
+
+    monkeypatch.setattr(advisor, "chat", fake_chat)
+    monkeypatch.setattr(security, "DAILY_BUDGET_USD", 0.00005)
+    assert client.post("/chat", json={"message": "hi"}).status_code == 200  # spends 0.00004
+    assert client.post("/chat", json={"message": "hi"}).status_code == 200  # still under cap, spends more
+    assert client.post("/chat", json={"message": "hi"}).status_code == 503
+
+
+def test_conversation_cost_cap(monkeypatch):
+    from app import security
+
+    monkeypatch.setattr(advisor, "chat", fake_chat)
+    monkeypatch.setattr(security, "MAX_CONVERSATION_USD", 0.1)
+    usage.add_to_conversation("resp_big", None, Usage(cost_usd=0.5))
+    r = client.post("/chat", json={"message": "hi", "previous_response_id": "resp_big"})
+    assert r.status_code == 429
 
 
 def test_health():

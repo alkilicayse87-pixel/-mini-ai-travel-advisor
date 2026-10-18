@@ -1,4 +1,6 @@
+import threading
 from collections import OrderedDict
+from datetime import datetime, timezone
 from typing import Optional
 
 from app.schemas import Usage
@@ -15,6 +17,34 @@ _MAX_TRACKED = 5000
 # response_id -> cumulative usage of the conversation up to that response.
 # In-memory only: resets on restart, and is bounded so it can't grow forever.
 _totals: "OrderedDict[str, Usage]" = OrderedDict()
+
+
+_spend_lock = threading.Lock()
+_daily = {"day": "", "spent": 0.0}
+
+
+def spent_today() -> float:
+    today = datetime.now(timezone.utc).date().isoformat()
+    with _spend_lock:
+        if _daily["day"] != today:
+            _daily.update(day=today, spent=0.0)
+        return _daily["spent"]
+
+
+def record_spend(cost_usd: float) -> None:
+    spent_today()  # rolls the day over if needed
+    with _spend_lock:
+        _daily["spent"] += cost_usd
+
+
+def reset_daily() -> None:
+    with _spend_lock:
+        _daily.update(day="", spent=0.0)
+
+
+def conversation_cost(response_id: Optional[str]) -> float:
+    total = _totals.get(response_id) if response_id else None
+    return total.cost_usd if total else 0.0
 
 
 def estimate_cost(model: str, input_tokens: int, output_tokens: int) -> float:
