@@ -15,6 +15,7 @@ Chatbot that plans personalized trips with the OpenAI API (FastAPI + Pydantic).
 
 ## Live demo
 
+- **App:** https://mini-ai-travel-advisor-frontend-ayse87.vercel.app
 - API docs: https://ai-travel-advisor-ot90.onrender.com/docs
 - Health: https://ai-travel-advisor-ot90.onrender.com/health
 
